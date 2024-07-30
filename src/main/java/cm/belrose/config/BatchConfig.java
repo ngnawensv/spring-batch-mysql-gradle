@@ -27,10 +27,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 @RequiredArgsConstructor
 public class BatchConfig {
 
-    private final JobRepository jobRepository;
-    private final PlatformTransactionManager transactionManager;
-    private final CustomerRepository customerRepository;
-
     // create Reader
     @Bean
     public FlatFileItemReader<Customer> customerReader(){
@@ -51,7 +47,7 @@ public class BatchConfig {
 
 
     // create Writer
-    public RepositoryItemWriter<Customer> customerWriter(){
+    public RepositoryItemWriter<Customer> customerWriter(CustomerRepository customerRepository){
        RepositoryItemWriter<Customer> writer = new RepositoryItemWriter<>();
         writer.setRepository(customerRepository);
         writer.setMethodName("save");
@@ -61,22 +57,22 @@ public class BatchConfig {
 
     // create Step
     @Bean
-    public Step customerstep(){
+    public Step customerstep(JobRepository jobRepository,PlatformTransactionManager transactionManager,CustomerRepository customerRepository){
         log.info("BatchConfig:customerStep::customerStep-1");
         return new StepBuilder("customer-Step-1",jobRepository)
                 .<Customer,Customer>chunk(10,transactionManager) // specify the number of items processed in a single transaction
                 .reader(customerReader())
                 .processor(customerProcessor())
-                .writer(customerWriter())
+                .writer(customerWriter(customerRepository))
                 .build();
     }
 
     // create Job
     @Bean
-    public Job job(){
+    public Job job(JobRepository jobRepository,PlatformTransactionManager transactionManager,CustomerRepository customerRepository){
         log.info("BatchConfig:job");
         return new JobBuilder("customer-csv-job",jobRepository)
-                .flow(customerstep())
+                .flow(customerstep(jobRepository,transactionManager,customerRepository))
                 .end()
                 .build();
     }
