@@ -18,7 +18,7 @@ spring:
 
     batch:
       job:
-        enabled: false #Disable job run at startup
+        enabled: true #Disable job run at startup
       #    The initialize-schema property controls when Spring Batch should initialize or reinitialize the schema used for batch processing metadata tables.
       #    These tables store information about job executions, step executions, and other related metadata.
       #    ALWAYS: Spring Batch will always initialize (or reinitialize) the schema.
